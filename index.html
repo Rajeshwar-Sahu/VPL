@@ -669,7 +669,7 @@ const GAS_KEY = 'vpl7-gasurl';
 localStorage.removeItem('vpl7-gasurl');
 localStorage.setItem(
   'vpl7-gasurl',
-  "https://script.google.com/macros/s/AKfycbzK7cOkwxAOklB7P9UdCHswurG6mnidqii2A1PzKZRhRPjaYVG7sZUAdQDiAT2E2MvGFQ/exec"
+  "https://script.google.com/macros/s/AKfycbzuTa21-9JjeWyKhAk6KYkz1u1ufvUrHvbzwPUdvCdCT6Vszz2jhiZ9bHr82Ckhd6InWw/exec"
 );
   
 const CACHE_KEY = 'vpl7-cache';
@@ -961,7 +961,14 @@ async function uploadToDrive(base64) {
     body: formData
   });
 
-  return await res.text();
+  const data = await res.json();
+
+  if (data.error) {
+    console.error("Upload error:", data.error);
+    return null;
+  }
+
+  return data.url;
 }
 
 //-------------------------------------------------------------------------------------
