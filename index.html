@@ -922,7 +922,7 @@ function copyCode() {
 //  LOGO HELPERS
 // ═══════════════════════════════════════════
 
-  function compressImage(file, maxWidth = 300, quality = 0.6){
+  function compressImage(file, maxWidth = 250, quality = 0.5){
   return new Promise((resolve)=>{
     const img = new Image();
     const reader = new FileReader();
@@ -1333,7 +1333,7 @@ async function doUploadPhotos() {
   toast('Uploading…', 'warn');
   let done = 0;
   for (const f of pendingFiles) {
-    const dataUrl = await new Promise(res => { const r = new FileReader(); r.onload = e => res(e.target.result); r.readAsDataURL(f); });
+    const dataUrl = await compressImage(f, 250, 0.5);
     const photo = { id: Date.now()+'_'+Math.random().toString(36).slice(2), matchId: pendingMid, dataUrl, name: f.name, uploaderName: name, uploaderEmail: email, votes:0, ts: Date.now() };
     if (gasUrl()) {
       await gasPOST({ action: 'uploadphoto', photo });
