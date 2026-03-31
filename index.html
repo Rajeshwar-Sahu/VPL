@@ -665,6 +665,13 @@ let S = {
 
 // ── gasUrl stored separately so pull() can never erase it ──
 const GAS_KEY = 'vpl7-gasurl';
+  
+localStorage.removeItem('vpl7-gasurl');
+localStorage.setItem(
+  'vpl7-gasurl',
+  "https://script.google.com/macros/s/AKfycbxz5YccYZ6jBro3PyjQGN0Qv51y9OtnPFCuxObOC4ug5s9bZ1B-LzA4-xfntN9xMoj6_w/exec"
+);
+  
 const CACHE_KEY = 'vpl7-cache';
 const FV_KEY = 'vpl7-fv';   // fan votes: {m<id>: 'home'|'away'}
 const PV_KEY = 'vpl7-pv';   // photo votes: [id,id,...]
@@ -708,18 +715,20 @@ async function gasGET(params) {
 async function gasPOST(body) {
   const url = gasUrl();
   if (!url) return null;
+
   try {
-    await fetch(url, {
-      method: 'POST',
-      mode: 'no-cors',           // <-- KEY: prevents redirect conversion
-      headers: { 'Content-Type': 'text/plain' },
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify(body)
     });
-    // Response is opaque with no-cors, so we poll GET to confirm the write
-    return { posted: true };
-  } catch(e) {
-    console.error('gasPOST error:', e);
-    return null;
+
+    return true;
+  } catch (e) {
+    console.error("POST error:", e);
+    return false;
   }
 }
 
