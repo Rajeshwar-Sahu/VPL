@@ -963,6 +963,8 @@ async function uploadToDrive(base64) {
 
   const data = await res.json();
 
+  console.log("UPLOAD RESPONSE:", data); // 🔥 ADD THIS
+
   if (data.error) {
     console.error("Upload error:", data.error);
     return null;
