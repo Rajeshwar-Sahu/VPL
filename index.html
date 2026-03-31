@@ -693,16 +693,23 @@ let mFilter='all';
 // ═══════════════════════════════════════════
 
 // GET requests work normally with redirect follow
-async function gasGET(params) {
+async function gasGET(params){
   const url = gasUrl();
   if (!url) return null;
-  try {
+
+  try{
     const qs = new URLSearchParams(params).toString();
-    const resp = await fetch(url + (qs ? '?' + qs : ''), { redirect: 'follow' });
-    const txt = await resp.text();
-    return JSON.parse(txt);
-  } catch(e) {
-    console.error('gasGET error:', e);
+
+    const res = await fetch(url + "?" + qs, {
+      method: "GET",
+      redirect: "follow"
+    });
+
+    const text = await res.text();
+    return JSON.parse(text);
+
+  }catch(e){
+    console.error("GET error:", e);
     return null;
   }
 }
@@ -720,15 +727,18 @@ async function gasPOST(body) {
     const res = await fetch(url, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "text/plain;charset=utf-8"
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
+      redirect: "follow"
     });
 
-    return true;
+    const text = await res.text();
+    return JSON.parse(text);
+
   } catch (e) {
     console.error("POST error:", e);
-    return false;
+    return null;
   }
 }
 
