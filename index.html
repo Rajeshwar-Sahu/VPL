@@ -977,9 +977,7 @@ function logoHtml(t, sz) {
   if (!t) return '';
   const c = sz === 'lg' ? 'tl-lg' : sz === 'sm' ? 'tl-sm' : 'tl';
   const ic = sz === 'lg' ? 'lg' : sz === 'sm' ? 'sm' : '';
-  if (t.logo && t.logo !== "null") {
-    return `<img class="${c}" src="${t.logo}" alt="${t.name}">`;
-  }
+  if (t.logo) return `<img class="${c}" src="${t.logo}" alt="${t.name}">`;
   const ini = t.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
   return `<span class="ti ${ic}">${ini}</span>`;
 }
@@ -1013,15 +1011,7 @@ async function onLogoFile(e) {
 
   // 🔥 COMPRESS IMAGE HERE
   const compressed = await compressImage(f, 200, 0.5);
-  const url = await uploadToDrive(compressed);
-
-  // 🔥 ADD CHECK
-  if (!url) {
-    toast("Logo upload failed ❌", "err");
-    return;
-  }
-
-editLogoUrl = url;
+  editLogoUrl = await uploadToDrive(compressed);
 
   document.getElementById('lm-prev').src = editLogoUrl;
   document.getElementById('lm-prev').style.display = 'block';
@@ -1371,25 +1361,8 @@ async function doUploadPhotos() {
   toast('Uploading…', 'warn');
   let done = 0;
   for (const f of pendingFiles) {
-    const compressed = await compressImage(f, 400, 0.5);
+    const compressed = await compressImage(f, 300, 0.5);
     const dataUrl = await uploadToDrive(compressed);
-
-// 🔥 ADD THIS CHECK
-    if (!dataUrl) {
-      toast("Image upload failed ❌", "err");
-      continue; // skip this image
-    }
-
-    const photo = { 
-      id: Date.now()+'_'+Math.random().toString(36).slice(2), 
-      matchId: pendingMid, 
-      dataUrl, 
-      name: f.name, 
-      uploaderName: name, 
-      uploaderEmail: email, 
-      votes:0, 
-      ts: Date.now() 
-   };
     const photo = { id: Date.now()+'_'+Math.random().toString(36).slice(2), matchId: pendingMid, dataUrl, name: f.name, uploaderName: name, uploaderEmail: email, votes:0, ts: Date.now() };
     if (gasUrl()) {
       await gasPOST({ action: 'uploadphoto', photo });
@@ -1524,7 +1497,7 @@ function renderMatches() {
     const photos = S.photos.filter(p=>p.matchId===m.id);
     const pStrip = photos.map(p => {
       const isBest = best?.id===p.id;
-      return `<div class="pthsm" onclick="openLb('${p.id}')">${p.dataUrl ? `<img src="${p.dataUrl}">` : ''}<div class="ptag">${p.uploaderName}</div>${isBest?`<span class="pstar">👑</span>`:''}</div>`;
+      return `<div class="pthsm" onclick="openLb('${p.id}')"><img src="${p.dataUrl}" alt=""><div class="ptag">${p.uploaderName}</div>${isBest?`<span class="pstar">👑</span>`:''}</div>`;
     }).join('');
     const editBtn = isAdmin ? `<button class="btn btn-s btn-sm" onclick="openEditMatch(${m.id})" style="font-size:.6rem;padding:.16rem .45rem;margin-top:.22rem;">✏️</button>` : '';
     return `<div class="mc pool-${m.pool}" id="mc-${m.id}">
@@ -1561,19 +1534,7 @@ function renderGallery() {
     const stage=m?(kos.includes(m.pool)?m.pool.toUpperCase():`Pool ${m.pool}`):'?';
     const thumbs=photos.map(p=>{
       const isV=pv.includes(String(p.id)), isBest=best&&String(best.id)===String(p.id);
-      return `<div class="pth" onclick="openLb('${p.id}')">
-        ${p.dataUrl 
-          ? `<img src="${p.dataUrl}" alt="">` 
-          : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#777;">No Image</div>`}
-        ${isBest ? `<span class="bpcrown">👑</span>` : ''}
-        <button class="pvbtn ${isV?'voted':''}" onclick="event.stopPropagation();doVotePhoto('${p.id}')">
-          ⭐ ${p.votes||0}
-        </button>
-        <div class="pibar">
-          <span class="piname">${p.uploaderName}</span>
-          ${p.uploaderEmail}
-        </div>
-      </div>`;
+      return `<div class="pth" onclick="openLb('${p.id}')"><img src="${p.dataUrl}" alt="">${isBest?`<span class="bpcrown">👑</span>`:''}<button class="pvbtn ${isV?'voted':''}" onclick="event.stopPropagation();doVotePhoto('${p.id}')">⭐ ${p.votes||0}</button><div class="pibar"><span class="piname">${p.uploaderName}</span>${p.uploaderEmail}</div></div>`;
     }).join('');
     return `<div class="gsec"><div class="gst"><span class="col-${m?.pool||'A'}" style="font-family:'Anton',sans-serif;letter-spacing:2px;">${stage}</span><div style="display:flex;align-items:center;gap:.38rem;">${logoHtml(ht,'sm')}<span>${hn}</span><span style="color:var(--border)">vs</span>${logoHtml(at,'sm')}<span>${an}</span></div>${fmtShort(m?.date)?`<span style="color:var(--muted);font-weight:400">${fmtShort(m?.date)}</span>`:''}<span style="color:var(--muted);font-size:.65rem;">${photos.length} photo${photos.length!==1?'s':''}</span><button class="btn btn-s btn-sm" style="margin-left:auto" onclick="openUpload(${mid})">+ Upload</button></div><div class="gg">${thumbs}</div></div>`;
   }).join('');
